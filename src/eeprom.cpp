@@ -11,6 +11,13 @@
 
 /* ============================================================== */
 
+EEPROM::EEPROM ()
+{
+    memset (memory, 0, kMemSize);
+};
+
+/* ============================================================== */
+
 size_t EEPROM::loadProgram (const uint8_t* prog, size_t size)
 {
     size_t sizeSel = std::min (size, (size_t)kMemSize);
@@ -25,7 +32,7 @@ void EEPROM::setOutputEnable (bool enabled)
     this->enabled = enabled;
     if (enabled)
     {
-        outValue = memory[address];
+        outValue = memory[this->address];
     }
     else
     {   
@@ -40,14 +47,14 @@ void EEPROM::latch ()
     if (enabled)
         return;
 
-    memory[address] = inValue;
-    printf (" Write 0x%02x\n", memory[address]);
+    memory[this->address] = inValue;
+    // printf (" Write 0x%02x\n", memory[address]);
 }
 
 /* ============================================================== */
 
 void EEPROM::setAddress (uint16_t address)
 {
-    this->address = address & 0x7F;
-    printf (" set Addr: 0x%04x\n", address);
+    this->address = address & 0x7FF;
+    // printf (" set Addr: 0x%04x\n", address);
 }

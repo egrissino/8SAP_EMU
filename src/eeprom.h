@@ -14,7 +14,7 @@ class EEPROM : public IBusInput, public ITriStateBusOutput
 {
 public:
 
-    EEPROM () {};
+    EEPROM ();
 
     void latch ();
     void setAddress (uint16_t address);

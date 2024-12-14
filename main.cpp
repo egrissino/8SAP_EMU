@@ -22,7 +22,7 @@ const size_t& size{primesFinderSize};
 
 int main (int argc, char** argv)
 {
-    auto ret = emu.loadProgram (program, size);
+    auto ret = emu.loadProgram (program, 160);
 
     if (ret != size)
     {
@@ -33,22 +33,31 @@ int main (int argc, char** argv)
 
     emu.run ();
 
-    usleep (500000);
+    usleep (1000000);
 
     emu.halt ();
 
     uint8_t buffer[EEPROM::kMemSize]{0};
-    size_t bytes = emu.dumpMem (buffer);
+    size_t bytes = emu.dumpMem (buffer, 0xFF+1);
+    size_t primes{0};
 
-    for (int i = 64; i < bytes; i++)
+    for (int i = 96; i < bytes; i++)
     {
-        printf ("0x%02x, ", buffer[i]);
+        // printf ("0x%02x, ", buffer[i]);
+        printf ("%5d, ", buffer[i]);
+
+        if (buffer[i] != 0)
+        {
+            primes++;
+        }
 
         if ((i % 8) == 7)
         {
             printf ("\n");
         }
     }
+
+    printf ("Found %ld primnes in %lu ticks\n", primes, emu.getTicks ());
 
     return 0;
 };

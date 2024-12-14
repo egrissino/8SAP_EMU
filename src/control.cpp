@@ -13,7 +13,6 @@ void Control::reset ()
 {
     pc.reset ();
     rc.clear ();
-    mar.setOutputEnable (true);
     instructionRegister.setOutputEnable (true);
 }
 
@@ -22,6 +21,7 @@ void Control::reset ()
 void Control::run ()
 {
     halted = false;
+    tickCount = 0;
 }
 
 /* ============================================================== */
@@ -40,20 +40,26 @@ bool Control::isHalted ()
 
 /* ============================================================== */
 
+size_t Control::getTicks ()
+{
+    return tickCount;
+}
+
+/* ============================================================== */
+
 void Control::clk (bool edge)
 {
     static uint8_t inst{0}, imm{0};
     if (edge)
     {
+        tickCount++;
         // Rising Edge
         switch (rc.getCycle ())
         {
         case RingCounter::kClk0:
             // printf ("Clk0 Rising\n");
             pc.setOutputEnable (true);
-            mar.setInput (pc.getOutput ());
-            mar.latch ();
-            rom.setAddress (mar.getOutput () | (prog << 8));
+            rom.setAddress (pc.getOutput () | (prog << 8));
             break;
         case RingCounter::kClk1:
             // printf ("Clk1 Rising\n");
@@ -70,10 +76,10 @@ void Control::clk (bool edge)
             switch (inst)
             {
                 case NOP:
-                    printf ("NOP\n");
+                    // printf ("NOP\n");
                     break;
                 case LDI:
-                    printf ("LDI\n");
+                    // printf ("LDI: 0x%02x\n", imm);
                     alu.setInput (imm);
                     alu.loadA ();
                     break;
@@ -83,40 +89,40 @@ void Control::clk (bool edge)
                 case JPZ:
                 case JPC:
                 case STR:
-                    mar.setInput (imm);
-                    mar.latch ();
-                    rom.setAddress (mar.getOutput () | (prog << 8));
+                    rom.setAddress (imm | (prog << 8));
                     break;
                 case LDM:
-                    printf ("LDM\n");
                     alu.setOutputEnable (true);
                     rom.setAddress (alu.getOutput () | (prog << 8));
                     break;
                 case MOV:
-                    printf ("MOV !\n");
                     alu.setOutputEnable (true);
                     alu.setInput (alu.getOutput ());
                     alu.loadB ();
+                    // printf ("MOV: 0x%02x\n", alu.getOutput ());
                     break;
                 case OUT:
-                    printf ("OUT !\n");
                     alu.setOutputEnable (true);
                     out.setInput (alu.getOutput ());
                     out.latch ();
+                    // printf ("OUT: 0x%02x\n", alu.getOutput ());
                     break;
                 case STM:
-                    printf ("STM !\n");
+                    alu.setOutputEnable (true);
+                    rom.setAddress (alu.getOutput ());
+                    // printf ("STM: \n");
                     break;
                 case ADD:
-                    printf ("ADD\n");
+                    // printf ("ADD\n");
                     alu.add ();
                     break;
                 case SUB:
-                    printf ("SUB\n");
+                    // printf ("SUB\n");
                     alu.subtract ();
                     break;
                 case SFT:
-                    printf ("SFT !\n");
+                    // printf ("SFT !\n");
+                    alu.shift ();
                     break;
                 case HLT:
                     printf ("HLT\n");
@@ -133,25 +139,25 @@ void Control::clk (bool edge)
                 case LDI:
                     break;
                 case LDA:
-                    printf ("LDA\n");
                     rom.setOutputEnable (true);
                     alu.setInput (rom.getOutput ());
                     alu.loadA ();
+                    // printf ("LDA: 0x%02x\n", rom.getOutput ());
                     break;
                 case LDB:
-                    printf ("LDB\n");
                     rom.setOutputEnable (true);
                     alu.setInput (rom.getOutput ());
                     alu.loadB ();
+                    // printf ("LDB: 0x%02x\n", rom.getOutput ());
                     break;
                 case JMP:
-                    printf ("JMP\n");
                     rom.setOutputEnable (true);
                     pc.setInput (rom.getOutput ());
                     pc.latch ();
+                    // printf ("JMP: 0x%02x\n", rom.getOutput ());
                     break;
                 case JPZ:
-                    printf ("JPZ\n");
+                    // printf ("JPZ\n");
                     if (alu.isZeroSet ())
                     {
                         rom.setOutputEnable (true);
@@ -160,7 +166,7 @@ void Control::clk (bool edge)
                     }
                     break;
                 case JPC:
-                    printf ("JPC\n");
+                    // printf ("JPC\n");
                     if (alu.isCarrySet ())
                     {
                         rom.setOutputEnable (true);
@@ -169,26 +175,22 @@ void Control::clk (bool edge)
                     }
                     break;
                 case STR:
-                    printf ("STR\n");
+                    // printf ("STR: 0x%02x\n", imm);
                     alu.setOutputEnable (true);
                     rom.setInput (alu.getOutput ());
                     rom.latch ();
                     break;
                 case LDM:
-                    printf ("LDM\n");
                     rom.setOutputEnable (true);
                     alu.setInput (rom.getOutput ());
                     alu.loadA ();
-                    break;
-                case MOV:
-                    break;
-                case OUT:
+                    // printf ("LDM: 0x%02x\n", rom.getOutput ());
                     break;
                 case STM:
-                    break;
-                case ADD:
-                    break;
-                case SUB:
+                    alu.add ();
+                    alu.setOutputEnable (true);
+                    rom.setInput (alu.getOutput ());
+                    rom.latch ();
                     break;
                 case SFT:
                     break;
@@ -239,11 +241,9 @@ void Control::clk (bool edge)
                     break;
                 case LDM:
                 case MOV:
-                    alu.setOutputEnable (false);
-                    break;
                 case OUT:
-                    break;
                 case STM:
+                    alu.setOutputEnable (false);
                     break;
                 case ADD:
                     break;
@@ -283,13 +283,12 @@ void Control::clk (bool edge)
                     }
                     break;
                 case STR:
+                case STM:
                     alu.setOutputEnable (false);
                     break;
                 case MOV:
                     break;
                 case OUT:
-                    break;
-                case STM:
                     break;
                 case ADD:
                     break;
