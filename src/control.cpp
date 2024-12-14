@@ -6,6 +6,7 @@
 
 #include "control.h"
 #include <stdio.h>
+#include <primesfinder.h>
 
 /* ============================================================== */
 
@@ -45,11 +46,13 @@ size_t Control::getTicks ()
     return tickCount;
 }
 
+
+
 /* ============================================================== */
 
 void Control::clk (bool edge)
 {
-    static uint8_t inst{0}, imm{0};
+    static uint8_t inst{0}, imm{0}, addr{0};
     if (edge)
     {
         tickCount++;
@@ -110,7 +113,6 @@ void Control::clk (bool edge)
                 case STM:
                     alu.setOutputEnable (true);
                     rom.setAddress (alu.getOutput ());
-                    // printf ("STM: \n");
                     break;
                 case ADD:
                     // printf ("ADD\n");
@@ -121,7 +123,7 @@ void Control::clk (bool edge)
                     alu.subtract ();
                     break;
                 case SFT:
-                    // printf ("SFT !\n");
+                    // printf ("SFT\n");
                     alu.shift ();
                     break;
                 case HLT:
@@ -154,43 +156,120 @@ void Control::clk (bool edge)
                     rom.setOutputEnable (true);
                     pc.setInput (rom.getOutput ());
                     pc.latch ();
-                    // printf ("JMP: 0x%02x\n", rom.getOutput ());
+                    // printf ("JMP: 0x%02x\t", rom.getOutput ());
+                    switch (rom.getOutput ())
+                    {
+                        case kExit:
+                            // printf ("exit ()\n");
+                            break;
+                        case kIncriment:
+                            // printf ("incriment ()\n");
+                            break;
+                        case kSubtract:
+                            // printf ("subtract ()\n");
+                            break;
+                        case kEnter:
+                            // printf ("enter ()\n");
+                            break;
+                        case kCheckPrimes:
+                            // printf ("checkPrimes ()\n");
+                            break;
+                        case kAddToPrimes:
+                            // printf ("addToPrimes ()\n");
+                            break;
+                        default:
+                            // printf ("\n");
+                            break;
+                    }
                     break;
                 case JPZ:
-                    // printf ("JPZ\n");
+                    // printf ("JPZ");
                     if (alu.isZeroSet ())
                     {
                         rom.setOutputEnable (true);
                         pc.setInput (rom.getOutput ());
                         pc.latch ();
+                        // printf (": 0x%02x\t", rom.getOutput ());
+                    }
+                    switch (rom.getOutput ())
+                    {
+                        case kExit:
+                            // printf ("exit ()\n");
+                            break;
+                        case kIncriment:
+                            // printf ("incriment ()\n");
+                            break;
+                        case kSubtract:
+                            // printf ("subtract ()\n");
+                            break;
+                        case kEnter:
+                            // printf ("enter ()\n");
+                            break;
+                        case kCheckPrimes:
+                            // printf ("checkPrimes ()\n");
+                            break;
+                        case kAddToPrimes:
+                            // printf ("addToPrimes ()\n");
+                            break;
+                        default:
+                            // printf ("\n");
+                            break;
                     }
                     break;
                 case JPC:
-                    // printf ("JPC\n");
+                    // printf ("JPC");
                     if (alu.isCarrySet ())
                     {
                         rom.setOutputEnable (true);
                         pc.setInput (rom.getOutput ());
                         pc.latch ();
+                        // printf (": 0x%02x\t", rom.getOutput ());
+                    }
+                    switch (rom.getOutput ())
+                    {
+                        case kExit:
+                            // printf ("exit ()\n");
+                            break;
+                        case kIncriment:
+                            // printf ("incriment ()\n");
+                            break;
+                        case kSubtract:
+                            // printf ("subtract ()\n");
+                            break;
+                        case kEnter:
+                            // printf ("enter ()\n");
+                            break;
+                        case kCheckPrimes:
+                            // printf ("checkPrimes ()\n");
+                            break;
+                        case kAddToPrimes:
+                            // printf ("addToPrimes ()\n");
+                            break;
+                        default:
+                            // printf ("\n");
+                            break;
                     }
                     break;
                 case STR:
-                    // printf ("STR: 0x%02x\n", imm);
                     alu.setOutputEnable (true);
                     rom.setInput (alu.getOutput ());
                     rom.latch ();
+                    // printf ("STR: 0x%02x : %d\n", imm, alu.getOutput ());
                     break;
                 case LDM:
                     rom.setOutputEnable (true);
                     alu.setInput (rom.getOutput ());
                     alu.loadA ();
-                    // printf ("LDM: 0x%02x\n", rom.getOutput ());
+                    // printf ("LDM: 0x%02x : %d\n", imm, rom.getOutput ());
                     break;
                 case STM:
+                    alu.setOutputEnable (true);
+                    addr = alu.getOutput ();
                     alu.add ();
                     alu.setOutputEnable (true);
                     rom.setInput (alu.getOutput ());
                     rom.latch ();
+                    // printf ("STM: 0x%02x : %d\n", addr, alu.getOutput ());
                     break;
                 case SFT:
                     break;

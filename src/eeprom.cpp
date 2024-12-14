@@ -14,14 +14,16 @@
 EEPROM::EEPROM ()
 {
     memset (memory, 0, kMemSize);
+    address = 0xF0;
 };
 
 /* ============================================================== */
 
 size_t EEPROM::loadProgram (const uint8_t* prog, size_t size)
 {
-    size_t sizeSel = std::min (size, (size_t)kMemSize);
+    size_t sizeSel = std::min (size, (size_t)kMaxProgSize);
     memcpy (memory, prog, sizeSel);
+    // printf ("0x%04x : 0x%02x\n", address, memory[address]);
     return sizeSel;
 }
 
@@ -33,6 +35,7 @@ void EEPROM::setOutputEnable (bool enabled)
     if (enabled)
     {
         outValue = memory[this->address];
+        // printf ("get : 0x%02x\n", outValue);
     }
     else
     {   

@@ -23,6 +23,7 @@ public:
     size_t loadProgram (const uint8_t* prog, size_t size);
 
     static const size_t kMemSize {65536};
+    static const size_t kMaxProgSize {0x100};
 
 private:
     uint16_t address{0};

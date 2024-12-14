@@ -83,7 +83,7 @@ void Emulator::threadLoop ()
     {
         /* Clock Rising Edge */
         ctl.clk (true);
-        // usleep (1);
+        usleep (1); // 1us pulse @ 50% DutyCycle -> 500 kHz clock
 
 
         /* Clock Falling Edge */
