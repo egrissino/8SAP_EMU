@@ -13,7 +13,7 @@ class Emulator
 {
 public:
     Emulator ()
-    : ctl (alu, mar, ram, rom, pc, out) {};
+    : ctl (alu, ram, rom, pc, out) {};
 
     void reset ();
     void run ();
@@ -21,6 +21,8 @@ public:
     size_t dumpMem (uint8_t* buffer, size_t bytes = EEPROM::kMemSize);
 
     size_t loadProgram (const uint8_t* prog, size_t size);
+    size_t getTicks ();
+    bool isHalted ();
 
 private:
     static void threadEntry (void* args);

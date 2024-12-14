@@ -34,6 +34,13 @@ void Emulator::halt ()
 
 /* ============================================================== */
 
+bool Emulator::isHalted ()
+{
+    return ctl.isHalted ();
+}
+
+/* ============================================================== */
+
 size_t Emulator::loadProgram (const uint8_t* prog, size_t size)
 {
     return (progSize = rom.loadProgram (prog, size));
@@ -43,15 +50,21 @@ size_t Emulator::loadProgram (const uint8_t* prog, size_t size)
 
 size_t Emulator::dumpMem (uint8_t* buffer, size_t bytes)
 {
-    size_t sizeSelect = std::min (bytes, progSize);
-
-    for (int i = 0; i < sizeSelect; i++)
+    for (int i = 0; i < bytes; i++)
     {
         rom.setAddress (i);
         rom.setOutputEnable (true);
         buffer[i] = rom.getOutput ();
+        rom.setOutputEnable (false);
     }
-    return sizeSelect;
+    return bytes;
+}
+
+/* ============================================================== */
+
+size_t Emulator::getTicks ()
+{
+    return ctl.getTicks ();
 }
 
 /* ============================================================== */
@@ -70,11 +83,11 @@ void Emulator::threadLoop ()
     {
         /* Clock Rising Edge */
         ctl.clk (true);
-        usleep (1000);
+        usleep (1); // 1us pulse @ 50% DutyCycle -> 500 kHz clock
 
 
         /* Clock Falling Edge */
         ctl.clk (false);
-        usleep (1000);
+        // usleep (1);
     }
 }

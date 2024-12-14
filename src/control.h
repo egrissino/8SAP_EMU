@@ -15,8 +15,8 @@
 class Control : public ITriStateBusOutput
 {
 public:
-    Control (ALU& alu, Register& mar, SRAM& ram, EEPROM& rom, ProgramCounter& pc, Register& out)
-    : alu (alu), mar (mar), ram (ram), rom (rom), pc (pc), out (out) {};
+    Control (ALU& alu, SRAM& ram, EEPROM& rom, ProgramCounter& pc, Register& out)
+    : alu (alu), ram (ram), rom (rom), pc (pc), out (out) {};
 
     void clk (bool edge);
 
@@ -26,6 +26,7 @@ public:
     void setOutputEnable (bool enabled) override;
 
     bool isHalted ();
+    size_t getTicks ();
 
     enum InstructionSet : uint8_t {
         NOP = 0,
@@ -50,9 +51,10 @@ public:
 
 private:
     uint8_t prog{0};
+    size_t tickCount = 0;
 
     ALU& alu;
-    Register& mar;
+    // Register& mar;
     SRAM& ram;
     EEPROM& rom;
     ProgramCounter& pc;
